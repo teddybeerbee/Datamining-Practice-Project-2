@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 import pandas as pd
 
 
@@ -48,7 +49,7 @@ def Likely_Crime(data, area_id, maxCrimes):
 
 
 def loadDataSet(crimeSet):
-
+    # return [[1, 3, 4], [2, 3, 5], [1, 2, 3, 5], [2, 5]]
     return crimeSet
 
 
@@ -106,9 +107,9 @@ def aprioriGen(Lk, k):
     lenLk = len(Lk)
     for i in range(lenLk):
         for j in range(i + 1, lenLk):
-            L1 = list(Lk[i])[: k - 2];
-            L2 = list(Lk[j])[: k - 2];
-            L1.sort();
+            L1 = list(Lk[i])[: k - 2]
+            L2 = list(Lk[j])[: k - 2]
+            L1.sort()
             L2.sort()
             if L1 == L2:
                 retList.append(Lk[i] | Lk[j])
@@ -147,7 +148,7 @@ def apriori(dataSet, minSupport):
 
 
 # 规则生成与评价
-def calcConf(freqSet, H, supportData, brl, minConf=0.7):
+def calcConf(freqSet, H, supportData, brl, minConf):
     '''
     计算规则的可信度，返回满足最小可信度的规则。
 
@@ -161,13 +162,15 @@ def calcConf(freqSet, H, supportData, brl, minConf=0.7):
     for conseq in H:
         conf = supportData[freqSet] / supportData[freqSet - conseq]
         if conf >= minConf:
-            print freqSet - conseq, '-->', conseq, 'conf:', conf
-            brl.append((freqSet - conseq, conseq, conf))
+            print freqSet - conseq, '-->', conseq,'lift:',conf/supportData[freqSet - conseq], 'conf:', conf
+            # 最后的参数是lift、全自信度
+            brl.append((freqSet - conseq, conseq, conf/supportData[freqSet - conseq],conf))
+            # brl.append((freqSet - conseq, conseq, conf))
             prunedH.append(conseq)
     return prunedH
 
 
-def rulesFromConseq(freqSet, H, supportData, brl, minConf=0.7):
+def rulesFromConseq(freqSet, H, supportData, brl, minConf):
     '''
     对频繁项集中元素超过2的项集进行合并。
 
@@ -213,7 +216,7 @@ def generateRules(L, supportData, minConf):
 
 if __name__ == '__main__':
     # maximum crimes
-    maxCrimes = 10
+    maxCrimes = 15
     data = pd.read_csv('testdata2.csv')
     areas = Partition(data, 'Area Id')
     areas.sort()
@@ -226,9 +229,9 @@ if __name__ == '__main__':
     # 导入数据集
     myDat = loadDataSet(crimeSet)
     # 选择频繁项集
-    miniSupport = 0.5
-    miniConf = 0.7
-    L, suppData = apriori(myDat, miniSupport)
+    minSupport = 0.5
+    minConf = 0.7
+    L, suppData = apriori(myDat, minSupport)
 
-    rules = generateRules(L, suppData, miniConf)
+    rules = generateRules(L, suppData, minConf)
     print 'rules:\n', rules
